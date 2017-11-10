@@ -51,7 +51,6 @@ if [ ! -d $TMPDIR ]; then
 	mkdir -p $TMPDIR 
 fi
 
-TIZEN_URL=http://download.tizen.org/releases/daily/tizen
 BUILD_XML=build.xml
 REPOMD_XML=repomd.xml
 PRIMARY_XML=primary.xml
@@ -81,7 +80,20 @@ fetch_tizen_pkgs_init()
 	if [ -d $TMP_PKG_DIR ]; then rm -rf $TMP_PKG_DIR; fi
 	mkdir -p $TMP_PKG_DIR
 
-	PKG_URL=$TIZEN_URL/$PROFILE/latest
+        # Tizen 4.0 Public M2
+        # https://developer.tizen.org/tizen/release-notes/tizen-4.0-public-m2
+        # https://source.tizen.org/release/tizen-4.0-m2
+        TIZEN_URL=http://download.tizen.org/releases/milestone/tizen
+        if [[ "$PROFILE" == "4.0-base" ]]; then
+            REPO_IDENTIFIER=tizen-4.0-base_20170929.1
+        elif [[ "$PROFILE" == "4.0-unified" ]]; then
+            REPO_IDENTIFIER=tizen-4.0-unified_20171027.1
+        else
+            Error "Unknown profile: $PROFILE"
+            Debug "TARGET: $TARGET, PROFILE: $PROFILE"
+            exit 1
+        fi
+	PKG_URL=$TIZEN_URL/$PROFILE/$REPO_IDENTIFIER
 
 	BUILD_XML_URL=$PKG_URL/$BUILD_XML
 	TMP_BUILD=$TMP_PKG_DIR/$BUILD_XML
@@ -154,8 +166,8 @@ fetch_tizen_pkgs()
 	done
 }
 
-Inform "Initialize base"
-fetch_tizen_pkgs_init standard base
+Inform "Initialize arm 4.0-base"
+fetch_tizen_pkgs_init arm 4.0-base
 Inform "fetch common packages"
 fetch_tizen_pkgs armv7l gcc glibc glibc-devel
 fetch_tizen_pkgs noarch linux-glibc-devel
@@ -164,12 +176,12 @@ fetch_tizen_pkgs armv7l lldb lldb-devel libuuid libuuid-devel libgcc libstdc++ l
 Inform "fetch corefx packages"
 fetch_tizen_pkgs armv7l libcom_err libcom_err-devel zlib zlib-devel libopenssl libopenssl-devel
 
-Inform "Initialize unified"
-fetch_tizen_pkgs_init standard unified
+Inform "Initialize standard 4.0-unified"
+fetch_tizen_pkgs_init standard 4.0-unified
 Inform "fetch common packages"
 fetch_tizen_pkgs armv7l libicu-devel
 Inform "fetch coreclr packages"
-fetch_tizen_pkgs armv7l tizen-release
+fetch_tizen_pkgs armv7l tizen-release lttng-ust-devel lttng-ust userspace-rcu-devel userspace-rcu
 Inform "fetch corefx packages"
 fetch_tizen_pkgs armv7l gssdp gssdp-devel krb5 krb5-devel libcurl libcurl-devel
 
